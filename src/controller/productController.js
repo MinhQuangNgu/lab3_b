@@ -8,7 +8,8 @@ class ProductController{
             let product = await Product.find();
             const category = await Category.find();
             const brand = await Brand.find();
-            let products = product.filter(item => {
+            let products = [];
+            product.forEach(item => {
                 let categoryTemp = {};
                 let brandTemp = {};
                 category.forEach(c => {
@@ -21,17 +22,18 @@ class ProductController{
                         brandTemp = b;
                     }
                 })
-                if(item.title.toLowerCase().includes(search.toLowerCase())){
-                    return {
+                if(item?.title?.toLowerCase()?.includes(search.toLowerCase())){
+                    products.push({
                         ...item._doc,
                         category:categoryTemp,
                         brand:brandTemp
-                    }
+                    });
                 }
             });
             return res.status(200).json({products:products});
         }
         catch(err){
+            console.log(err)
             return res.status(500).json({
                 message:err.toString()
             })
@@ -93,6 +95,27 @@ class ProductController{
             return res.status(200).json({products:products});
         }
         catch(err){
+            return res.status(500).json({
+                message:err.toString()
+            })
+        }
+    }
+
+    async createNewProduct(req,res){
+        try{
+            const {title,price,discountPercentage,rating,stock,brand,category,description} = req.body;
+            console.log({
+                title,price,discountPercentage,rating,stock,brand,category,description
+            })
+            const product = await Product.find().sort({ id: 'desc' });
+            const newProduct = new Product({
+                title,price,discountPercentage,rating,stock,brand,category,description
+            })
+            await newProduct.save();
+            return res.status(200).json({message:"Tạo mới thành công"});
+        }
+        catch(err){
+            console.log(err);
             return res.status(500).json({
                 message:err.toString()
             })
